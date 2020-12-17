@@ -44,7 +44,6 @@ def inference_brute_force(G):
         G.nodes[v]['gradient_unary_potential'] = np.zeros(G.graph['K'])
     for e in G.edges:
         G.edges[e]['gradient_binary_potential'] = np.zeros((G.graph['K'], G.graph['K']))
-        print(e)
         #print(G.edges[e]['binary_potential'])
     G.graph['v_map'] = np.zeros(len(G.nodes))
 
@@ -93,7 +92,7 @@ def inference_brute_force(G):
             for pr, liz in zip(prob_list, possibility_list):
                 if liz[v] == k:
                     G.nodes[v]['marginal_prob'][k] += pr
-        print(G.nodes[v]['marginal_prob'])
+        #print(G.nodes[v]['marginal_prob'])
 
     G.graph['v_map'] = np.asarray(possibility_list[np.argmax(np.asarray(prob_list))])
 
@@ -141,7 +140,7 @@ def inference_brute_force(G):
 
     #for e in G.edges:
         #print(G.edges[e]['gradient_binary_potential'])
-    print(G.graph['v_map'])
+    #print(G.graph['v_map'])
 
     return G
 
@@ -187,7 +186,7 @@ def inference(G):
     num_nodes = len(G.nodes)
     num_edges = len(G.edges)
 
-    print(assignment_l)
+    #print(assignment_l)
 
     degree_l = [G.degree(x) for x in G.nodes()]
     #print(degree_l)
@@ -369,12 +368,13 @@ def inference(G):
     belief_prop(0, leaf_nodes, emp_list, emp_list2)
 
 
-    #for v in G.nodes:
+    for v in G.nodes:
         #print("hi")
         #print(G.nodes[v]['Messages'])
-        #G.nodes[v]['marginal_prob'] = np.multiply(np.prod(G.nodes[v]['Messages'], axis = 0), G.nodes[v]['unary_potential'])
-        #G.nodes[v]['marginal_prob'] = G.nodes[v]['marginal_prob'] / sum(G.nodes[v]['marginal_prob'])
-        #print(G.nodes[v]['marginal_prob'])
+        G.nodes[v]['marginal_prob'] = np.multiply(np.prod(G.nodes[v]['Messages'], axis = 0), G.nodes[v]['unary_potential'])
+        G.nodes[v]['marginal_prob'] = G.nodes[v]['marginal_prob'] / sum(G.nodes[v]['marginal_prob'])
+        if not args.random:
+            print(G.nodes[v]['marginal_prob'])
     #for v in G.nodes:
         #print(G.nodes[v]['gradient_unary_potential'])
 
@@ -418,7 +418,7 @@ def inference(G):
         G.edges[e]['gradient_binary_potential'] -= matrix_term2 / Z
         #print(G.edges[e]['gradient_binary_potential'])
 
-
+    
     print(G.graph['v_map'])
 
     return G
@@ -427,25 +427,37 @@ def inference(G):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('input', type=str, help='The input graph')
+    parser.add_argument('--input', type=str, help='The input graph')
+    parser.add_argument('--random', action = 'store_true', help='Include if we want to generate a random graph as well')
     args = parser.parse_args()
-    G = load_graph(args.input)
-    inference(G)
-    pickle.dump(G, open('results_' + args.input, 'wb'))
+    
+    if not args.random:
+        
+        G = load_graph(args.input)
+        #G0 = inference_brute_force(G)
 
 
-    G2 = nx.generators.trees.random_tree(2000, seed = 1170)
+        #print("EFFICIENT")
+        G1 = inference(G)
+        pickle.dump(G1, open('results_' + args.input, 'wb'))
 
-    np.random.seed(1170)
-    G2.graph['K'] = 5
-    b = 5
-    a = 1
-    for v in G2.nodes:
-        G2.nodes[v]['assignment'] = np.random.randint(0, G2.graph['K'])
-        G2.nodes[v]['unary_potential'] = (b - a) * np.random.random_sample(G2.graph['K']) + a
+   
+    
+    else:
+        ### to randomly generate a tree
 
-    for e in G2.edges:
-        G2.edges[e]['binary_potential'] = (b - a) * np.random.random_sample((G2.graph['K'], G2.graph['K'])) + a
+        G2 = nx.generators.trees.random_tree(2000, seed = 1170)
 
-    inference(G2)
-    #print(len(G2))
+        np.random.seed(1170)
+        G2.graph['K'] = 5
+        b = 5
+        a = 1
+        for v in G2.nodes:
+            G2.nodes[v]['assignment'] = np.random.randint(0, G2.graph['K'])
+            G2.nodes[v]['unary_potential'] = (b - a) * np.random.random_sample(G2.graph['K']) + a
+
+        for e in G2.edges:
+            G2.edges[e]['binary_potential'] = (b - a) * np.random.random_sample((G2.graph['K'], G2.graph['K'])) + a
+
+        inference(G2)
+        #print(len(G2))
