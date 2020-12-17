@@ -429,22 +429,28 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', type=str, help='The input graph')
     parser.add_argument('--random', action = 'store_true', help='Include if we want to generate a random graph as well')
+    parser.add_argument('--brute_force', action = 'store_true', help='Include if we want to use brute force instead of the efficient belief propagation')
     args = parser.parse_args()
     
     if not args.random:
-        
         G = load_graph(args.input)
-        #G0 = inference_brute_force(G)
+        if not brute_force:
+       
+            G1 = inference(G)
+            pickle.dump(G1, open('results_efficient' + args.input, 'wb')) ## only save efficient
 
+        else:
+            G0 = inference_brute_force(G)
+            pickle.dump(G0, open('results_bruteforce' + args.input, 'wb')) ## only save efficient
 
-        #print("EFFICIENT")
-        G1 = inference(G)
-        pickle.dump(G1, open('results_' + args.input, 'wb'))
 
    
     
     else:
         ### to randomly generate a tree
+
+        if args.brute_force:
+            print("Brute force not used for such a large random graph. Defaulting to efficient belief propagation.")
 
         G2 = nx.generators.trees.random_tree(2000, seed = 1170)
 
