@@ -22,4 +22,4 @@ To generate a large random tree and test the algorithm, use:
        python pgm.py --input "test_graph_00.pickle" --random
 ```
 
-Note that for the large random tree we will not be permitting brute force to be used.
+One can change the input argument to whichever test graph follows the pickle format found in this repo. Note that for the large random tree we will not be permitting brute force to be used.
